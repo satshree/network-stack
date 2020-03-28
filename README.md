@@ -2,7 +2,7 @@
   
 A Collection of Python Script to Fiddle With Your Network.  
 Use Them For Educational, Experiment purposes.  
-##### No criminal or offensive activity is encouraged and therefore will not be held responsible for! ######
+##### No criminal or offensive activity is encouraged and therefore the author will not be held responsible for! ######
 
 ## Requirements ## 
   
