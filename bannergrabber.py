@@ -1,7 +1,11 @@
 import sys
 import socket
-from portscanner import ScanPort
 from common.common import exit_program
+try:
+    from portscanner import ScanPort
+except ModuleNotFoundError:
+    print("'portscanner.py' not found!")
+    exit(0)
 
 class GrabBanner:
     def __init__(self, host, ports=None):
