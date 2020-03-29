@@ -26,7 +26,7 @@ class GrabBanner:
                 print("-" * 60)
                 scan_port.connect_scan(verbose=True)
 
-            self.ports = scan_port.open_ports
+            self.ports = scan_port.get_open_ports
         self.banners={}
     
     @property
