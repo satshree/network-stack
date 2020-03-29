@@ -101,6 +101,8 @@ class ScanPort:
                             self.open_ports.append({
                                 port: port_desc
                             })
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError
         except KeyboardInterrupt:
             exit_program()
         except Exception as e:
