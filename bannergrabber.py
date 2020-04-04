@@ -130,10 +130,17 @@ def main():
             banners = banner.grab(verbose=True, payload=payload)
         except KeyboardInterrupt:
             exit_program()
-        # except:
-        #     print('')
-        #     print('-' * 60)
-        #     print('Try Again...')
+        except Exception as e:
+            with open("error.txt", "a") as file:
+                file.write("\n")
+                file.write("-" * 60)
+                file.write("\n")
+                file.write(str(e))
+                file.write("\n")
+                file.write("-" * 60)
+            print('')
+            print('-' * 60)
+            print('Try Again...')
         else:
             if banners:
                 print("-" * 60)
