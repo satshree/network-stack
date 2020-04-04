@@ -1,6 +1,7 @@
 import sys
 import socket
 import time
+import os
 try:
     from scapy.all import srp, ARP, Ether
 except ModuleNotFoundError:
@@ -11,6 +12,12 @@ try:
     from common.common import exit_program, get_OUI, get_sys_gateway#, get_sys_ip
 except ModuleNotFoundError:
     print("'common' folder and its components not found ...")
+    exit(0)
+
+try:
+    from nmap import PortScanner
+except ModuleNotFoundError:
+    print("'python-nmap' not installed ...")
     exit(0)
 
 def flush_msg(*msg, next_line=True):
@@ -97,12 +104,27 @@ class ScanHost:
             try:
                 hostname = socket.gethostbyaddr(ip)[0]
             except:
-                hostname = None
+                hostname = "----"
             self.hosts[ip]['Hostname'] = hostname
 
-    def os(self):
+    def os(self, verbose=False):
         """ Fingerprint OS by nmap. """
-        pass
+        _nmap = PortScanner()
+
+        progress = 1
+        for ip in self.hosts.keys():
+            if verbose:
+                flush_msg("\rProgress: {} % ...".format(int((progress/self.total_hosts) * 100)), next_line=False)
+            try:
+                _nmap.scan(ip, arguments="-O")
+                self.hosts[ip]["OS"] = _nmap[ip]["osmatch"][0]["name"]
+            except:
+                self.hosts[ip]["OS"] = "----"
+
+            progress += 1
+
+        if verbose:
+            flush_msg("")
 
 def main():
     print('-' * 60)
@@ -137,9 +159,11 @@ def main():
             print("Identifying Hostnames...")
             scan.hostname()
 
-            # print("-" * 60)
-            # print("Identifying Operating System...")
-            # scan.hostname()
+            if os.getuid() == 0:
+                print("-" * 60)
+                print("Identifying Operating System...")
+                print("This can take long time...")
+                scan.os(verbose=True)
 
             end = time.time()
 
@@ -151,7 +175,7 @@ def main():
                 print("MAC Address:", info["MAC"])
                 print("Vendor:", info["Vendor"])
                 print("Hostname:", info["Hostname"])
-                # print("OS:", info["OS"])
+                print("OS:", info["OS"])
             
             print("-" * 60)
             print("Total Hosts:", len(scan.get_hosts.keys()))
@@ -164,4 +188,9 @@ def main():
             print("Exception:", str(e))
 
 if __name__ == "__main__":
+    if os.getuid() != 0:
+        print("-" * 60)
+        print("No Root/Admin Privileges.")
+        print("OS Fingerprinting will not be done.")
+
     main()

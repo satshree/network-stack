@@ -1,0 +1,35 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "482540f4bed2727784b02122057910b892e333e893e07d20121f1a557108b33d"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.7"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "python-nmap": {
+            "hashes": [
+                "sha256:80ba0eb10a52283a54a633f40b5baa9c2ff08675d6621dd089ead942852f5bd3"
+            ],
+            "index": "pypi",
+            "version": "==0.6.1"
+        },
+        "scapy": {
+            "hashes": [
+                "sha256:e2f8d11f6a941c14a789ae8b236b27bd634681f1b29b5e893861e284d234f6b0"
+            ],
+            "index": "pypi",
+            "version": "==2.4.3"
+        }
+    },
+    "develop": {}
+}
