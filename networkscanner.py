@@ -175,7 +175,8 @@ def main():
                 print("MAC Address:", info["MAC"])
                 print("Vendor:", info["Vendor"])
                 print("Hostname:", info["Hostname"])
-                print("OS:", info["OS"])
+                if os.getuid() == 0:
+                    print("OS:", info["OS"])
             
             print("-" * 60)
             print("Total Hosts:", len(scan.get_hosts.keys()))
