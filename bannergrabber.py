@@ -49,7 +49,7 @@ class GrabBanner:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.settimeout(5)
-                s.connect((host, port))
+                s.connect((self.host, int(port)))
 
                 if not payload:
                     # Payload for banner grabbing
@@ -60,8 +60,8 @@ class GrabBanner:
 
                 s.send(payload.encode())
 
+                self.banners[port] = s.recv(1024).decode('utf-8').strip()
                 s.close()
-                self.banners[port] = s.recv(1024).decode('utf-8')
             except:
                 pass
         
@@ -71,6 +71,19 @@ class GrabBanner:
 
         return self.banners
 
+def get_payload():
+    try:
+        with open("bannergrabbing_payloads.txt", "r") as file:
+            payload = file.read()
+    except Exception as e:
+        print("Exception:", str(e))
+        payload = None
+    except FileNotFoundError:
+        print("File 'bannergrabbing_payloads.txt' Not Found!")
+        payload = None
+    finally:
+        return payload
+    
 def main():
     print('-' * 60)
     print('-' * 20 , ' BANNER  GRABBING ', '-' * 20)
@@ -94,7 +107,27 @@ def main():
                 port=[]
             banner = GrabBanner(ip, ports=port)
 
-            banners = banner.grab(verbose=True)
+            print("-" * 60)
+            print("Keep your custom payloads in file 'bannergrabbing_payloads.txt'.")
+            while True:
+                print('-' * 60)
+                custom = input('Custom payload for banner grabbing?[y/n]: ').lower()
+                if custom in ("y", "yes", "n", "no"):
+                    if custom in ("y", "yes"):
+                        payload = get_payload()
+                        if not payload:
+                            print("-" * 60)
+                            input("Press Enter To Continue.")
+                        else:
+                            break
+                    else:
+                        payload = None
+                        break
+                else:
+                    continue
+
+            print("-" * 60)
+            banners = banner.grab(verbose=True, payload=payload)
         except KeyboardInterrupt:
             exit_program()
         # except:
