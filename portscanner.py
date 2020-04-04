@@ -2,9 +2,14 @@ import sys
 import socket
 try:
     from scapy.all import IP, TCP, sr1
-except:
+except ModuleNotFoundError:
     pass
-from common.common import exit_program
+
+try:
+    from common.common import exit_program
+except ModuleNotFoundError:
+    print("'common' folder and its components not found ...")
+    exit(0)
 
 class ScanPort:
     def __init__(self, host, port=[]):

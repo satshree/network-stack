@@ -1,10 +1,15 @@
 import sys
 import socket
-from common.common import exit_program
+try:
+    from common.common import exit_program
+except ModuleNotFoundError:
+    print("'common' folder and its components not found ...")
+    exit(0)
+
 try:
     from portscanner import ScanPort
 except ModuleNotFoundError:
-    print("'portscanner.py' not found!")
+    print("'portscanner.py' not found ... ")
     exit(0)
 
 class GrabBanner:
