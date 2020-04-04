@@ -1,8 +1,8 @@
 ## About ##
   
 A Collection of Python Script to Fiddle With Your Network.  
-Use Them For Educational, Experiment purposes.  
-##### No criminal or offensive activity is encouraged and therefore the author will not be held responsible for! ######
+Use Them For Educational and Experimental purposes.  
+##### No criminal or offensive activity is encouraged; therefore the author will not be held responsible for any actions! ######
 
 ## Requirements ## 
   
