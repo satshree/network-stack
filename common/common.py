@@ -2,6 +2,11 @@ import socket
 import subprocess
 import sys 
 import os
+try:
+    from netifaces import gateways, AF_INET
+except ModuleNotFoundError:
+    print("netifaces not installed...")
+    exit(0)
 
 def exit_program():
     print('')
@@ -11,6 +16,16 @@ def exit_program():
     print('')
     exit(0)
 
+def flush_msg(*msg, next_line=True):
+    """ Flush out message to terminal. """
+    for txt in msg:
+        print(txt, end=" ")
+        sys.stdout.flush()
+    
+    if next_line:
+        print("")
+        sys.stdout.flush()
+        
 def get_OUI():
     """ Returns list of MAC address and its vendor. """
 
@@ -48,16 +63,22 @@ def get_sys_ip():
         return ip_address
 
 def get_sys_gateway():
-    if sys.platform == 'win32':
-        cmd = subprocess.check_output(['ipconfig']).decode('utf-8').split()
-        gateway = cmd.pop()
-    # elif sys.platform == 'darwin':
-    else:
-        terminal_command = subprocess.check_output(['route', '-n', 'get', 'default']).decode('utf-8').split()
-        index = terminal_command.index('gateway:')
-        gateway = terminal_command[index + 1]
+    return gateways()['default'][AF_INET][0]
 
-    octets = gateway.split(".")
-    octets[-1] = "0/24"
-    gateway = ".".join(octets)
-    return gateway
+    ### OLD WAY
+    # if sys.platform == 'win32':
+    #     cmd = subprocess.check_output(['ipconfig']).decode('utf-8').split()
+    #     gateway = cmd.pop()
+    # # elif sys.platform == 'darwin':
+    # else:
+    #     terminal_command = subprocess.check_output(['route', '-n', 'get', 'default']).decode('utf-8').split()
+    #     index = terminal_command.index('gateway:')
+    #     gateway = terminal_command[index + 1]
+
+    # octets = gateway.split(".")
+    # octets[-1] = "0/24"
+    # gateway = ".".join(octets)
+    # return gateway
+
+def get_wlan_iface():
+    return gateways()['default'][AF_INET][-1]

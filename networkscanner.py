@@ -9,7 +9,7 @@ except ModuleNotFoundError:
     exit(0)
 
 try:
-    from common.common import exit_program, get_OUI, get_sys_gateway#, get_sys_ip
+    from common.common import flush_msg, exit_program, get_OUI, get_sys_gateway#, get_sys_ip
 except ModuleNotFoundError:
     print("'common' folder and its components not found ...")
     exit(0)
@@ -20,16 +20,6 @@ except ModuleNotFoundError:
     print("'python-nmap' not installed ...")
     exit(0)
 
-def flush_msg(*msg, next_line=True):
-    """ Flush out message to terminal. """
-    for txt in msg:
-        print(txt, end=" ")
-        sys.stdout.flush()
-    
-    if next_line:
-        print("")
-        sys.stdout.flush()
-
 class ScanHost:
     def __init__(self, network=None, attempts=5):
         if network:
@@ -38,7 +28,9 @@ class ScanHost:
             else:
                 raise Exception("Invalid Network Address.")
         else:
-            self.ip = get_sys_gateway()
+            ip = get_sys_gateway().split(".")
+            ip[-1] = "0/24"
+            self.ip = ".".join(ip)
         self.attempts = attempts
         self.hosts = {}
     
