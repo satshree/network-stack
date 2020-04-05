@@ -50,11 +50,11 @@ class ScanPort:
                 s.settimeout(2)
 
                 # Complete Three Way Handshake
-                s.connect((host, port))
+                s.connect((self.host, int(port)))
 
                 # Get Port Service Name
                 try:
-                    port_desc = socket.getservbyport(port).upper()
+                    port_desc = socket.getservbyport(int(port)).upper()
                 except:
                     port_desc = "Unknown"
                     
@@ -86,7 +86,7 @@ class ScanPort:
                     sys.stdout.flush()                    
 
                 # TCP Packet.
-                tcp = TCP(dport=port, flags="S", seq=port)
+                tcp = TCP(dport=int(port), flags="S", seq=int(port))
 
                 # Stack IP and TCP packets to send.
                 packet = ip/tcp
@@ -99,7 +99,7 @@ class ScanPort:
                         if reply.seq > 0:
                             # If the port is open.
                             try:
-                                port_desc = socket.getservbyport(port).upper()
+                                port_desc = socket.getservbyport(int(port)).upper()
                             except:
                                 port_desc = "Unknown"
 
