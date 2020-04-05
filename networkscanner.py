@@ -77,7 +77,7 @@ class ScanHost:
 
         for attempt in range(self.attempts):
             if verbose:
-                flush_msg("\rScanning network {} | Attempt: {} of {}...".format(self.ip, (attempt + 1), self.attempts), next_line=False)
+                flush_msg("\rScanning network {} | Attempt: {} of {}.".format(self.ip, (attempt + 1), self.attempts), next_line=False)
             answered = srp(arp_broadcast, timeout=2, verbose=False)[0]
 
             for element in answered:
@@ -114,10 +114,10 @@ class ScanHost:
         progress = 1
         for ip in self.hosts.keys():
             if verbose:
-                flush_msg("\rProgress: {} % ...".format(int((progress/self.total_hosts) * 100)), next_line=False)
+                flush_msg("\rProgress: {} % | Fingerprinting {}...".format(int((progress/self.total_hosts) * 100), ip), next_line=False)
             try:
                 _nmap.scan(ip, arguments="-O")
-                self.hosts[ip]["OS"] = _nmap[ip]["osmatch"][0]["name"]
+                self.hosts[ip]["OS"] = _nmap[ip]["osmatch"][0]["name"] + " ({} % Accurate)".format(_nmap[ip]["osmatch"][0]["accuracy"])
             except:
                 self.hosts[ip]["OS"] = "----"
 
@@ -159,29 +159,34 @@ def main():
             print("Identifying Hostnames...")
             scan.hostname()
 
-            if os.getuid() == 0:
-                print("-" * 60)
-                print("Identifying Operating System...")
-                print("This can take long time...")
-                scan.os(verbose=True)
-
-            end = time.time()
-
             print("-" * 60)
-            print("Results...")
+            print("Results.")
             for host, info in scan.get_hosts.items():
                 print("-" * 60)
                 print("HOST:", host)
                 print("MAC Address:", info["MAC"])
                 print("Vendor:", info["Vendor"])
                 print("Hostname:", info["Hostname"])
-                if os.getuid() == 0:
-                    print("OS:", info["OS"])
+
+            if os.getuid() == 0:
+                print("-" * 60)
+                print("Identifying Operating System...")
+                print("This can take long time...")
+                print("-" * 60)
+                scan.os(verbose=True)
+
+                print("-" * 60)
+                print("IP", "\t\t|", "Operating System")
+                print("-" * 60)
+                for host, info in scan.get_hosts.items():
+                    print(host, "\t|", info["OS"])
+
+            end = time.time()
             
             print("-" * 60)
             print("Total Hosts:", len(scan.get_hosts.keys()))
             print("-" * 60)
-            print("Total Time Taken:", int(end-start), "seconds")
+            print("Total Time Taken:", int(end-start), "seconds", "| Approximately {} minutes".format(int(int(end-start)/60)))
             # print("-" * 60)
         except KeyboardInterrupt:
             exit_program()
