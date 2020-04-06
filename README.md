@@ -8,7 +8,8 @@ Use Them For Educational and Experimental purposes.
   
 1. Python 3.*  
 2. scapy ('python-scapy' on Linux)  
-3. python-nmap   
+3. python-nmap  
+4. netifaces  
 
 ## Author ##
   
