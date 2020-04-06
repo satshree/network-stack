@@ -62,13 +62,7 @@ def get_iface_stdin():
         except KeyboardInterrupt:
             exit_program()
         except Exception as e:
-            with open("error.txt", "a") as file:
-                file.write("\n")
-                file.write("-" * 60)
-                file.write("\n")
-                file.write(str(e))
-                file.write("\n")
-                file.write("-" * 60)
+            log_exception(e)
             continue
     return iface
 
