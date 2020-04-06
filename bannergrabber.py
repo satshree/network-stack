@@ -1,7 +1,8 @@
 import sys
 import socket
+
 try:
-    from common.common import exit_program
+    from common.common import exit_program, log_exception
 except ModuleNotFoundError:
     print("'common' folder and its components not found ...")
     exit(0)
@@ -131,13 +132,7 @@ def main():
         except KeyboardInterrupt:
             exit_program()
         except Exception as e:
-            with open("error.txt", "a") as file:
-                file.write("\n")
-                file.write("-" * 60)
-                file.write("\n")
-                file.write(str(e))
-                file.write("\n")
-                file.write("-" * 60)
+            log_exception(e)
             print('')
             print('-' * 60)
             print('Try Again...')

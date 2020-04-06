@@ -8,6 +8,15 @@ except ModuleNotFoundError:
     print("netifaces not installed...")
     exit(0)
 
+def log_exception(exception):
+    with open("error.txt", "a") as file:
+        file.write("\n")
+        file.write("-" * 60)
+        file.write("\n")
+        file.write(str(exception))
+        file.write("\n")
+        file.write("-" * 60)
+
 def exit_program():
     print('')
     print('-' * 60)

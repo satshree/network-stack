@@ -2,6 +2,7 @@ import sys
 import socket
 import time
 import os
+
 try:
     from scapy.all import srp, ARP, Ether
 except ModuleNotFoundError:

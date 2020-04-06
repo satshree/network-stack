@@ -1,12 +1,13 @@
 import sys
 import socket
+
 try:
     from scapy.all import IP, TCP, sr1
 except ModuleNotFoundError:
     pass
 
 try:
-    from common.common import exit_program
+    from common.common import exit_program, log_exception
 except ModuleNotFoundError:
     print("'common' folder and its components not found ...")
     exit(0)
@@ -111,13 +112,7 @@ class ScanPort:
         except KeyboardInterrupt:
             exit_program()
         except Exception as e:
-            with open("error.txt", "a") as file:
-                file.write("\n")
-                file.write("-" * 60)
-                file.write("\n")
-                file.write(str(e))
-                file.write("\n")
-                file.write("-" * 60)
+            log_exception(e)
         else:
             if verbose:
                 print("")
