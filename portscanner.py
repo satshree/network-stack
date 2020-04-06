@@ -62,6 +62,8 @@ class ScanPort:
                 self.open_ports.append({
                     port:port_desc
                 })
+
+                s.close()
             except KeyboardInterrupt:
                 exit_program()
             except:
