@@ -1,5 +1,6 @@
 Pipfile
 Pipfile.lock
+.DS_Store
 error.txt
 .vscode
 __pycache__/
