@@ -190,6 +190,6 @@ if __name__ == "__main__":
     if os.getuid() != 0:
         print("-" * 60)
         print("No Root/Admin Privileges.")
-        print("OS Fingerprinting will not be done.")
-
-    main()
+        print("-" * 60)
+    else:
+        main()
