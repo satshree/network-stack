@@ -1,3 +1,4 @@
+import sys
 from collections import Counter
 
 try:    
@@ -37,7 +38,12 @@ class Sniff:
     
     @property
     def sniff(self):
-        _(iface=self.iface, filter="ip", store=False, prn=self.process)
+        if "--sniff-credential" in sys.argv:
+            prn_func = self.sniff_credentials
+        else:
+            prn_func = self.process
+
+        _(iface=self.iface, filter="ip", store=False, prn=prn_func)
     
     def process(self, packet):
         info = (packet[0][1].src, packet[0][1].dst)
@@ -45,6 +51,16 @@ class Sniff:
         result = "Initiator: {} <==> Receiver: {}".format(packet[0][1].src, packet[0][1].dst)
         self.capture[result] = self.counter[info]
         flush_msg(result)
+    
+    def sniff_credentials(self, packet):
+        if packet.haslayer(http.HTTPRequest):
+            flush_msg("HTTP Request from {} | {} ".format(packet[http.HTTPRequest].Host, packet[http.HTTPRequest].Path))
+            if packet.haslayer(scapy.Raw):
+                load = packet[scapy.Raw].load
+                keys = ["username", "password", "pass", "email"]
+                for key in keys:
+                    if key in load:
+                        flush_msg("Possible Username or Password Found {}".format(load))
 
 def get_iface_stdin():
     iface = None
@@ -83,7 +99,10 @@ def main():
         try:
             s = Sniff(iface=iface)
             print("-" * 60)
-            print("Monitoring your network...")
+            if "--sniff-credential" in sys.argv:
+                print("Looking for possible username or password ... ")
+            else:
+                print("Monitoring your network...")
             print("-" * 60)
             s.sniff
             print("")
