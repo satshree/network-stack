@@ -132,10 +132,6 @@ def main(name=None, stealth=False):
     print('-' * 60)
     print('-' * 21, ' PORT  SCANNING ', '-' * 21)
 
-    # if stealth:
-    #     print('-' * 60)
-    #     print("Run portscanner with flag '-stealth' to perform stealth scan.")
-
     while True:
         try:
             print('-' * 60)

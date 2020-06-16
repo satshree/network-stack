@@ -24,7 +24,41 @@ except ModuleNotFoundError:
     print("netifaces not installed ...")
     exit(0)
 
-all_ifaces = interfaces()
+
+def set_interfaces():
+    ifaces = interfaces()
+    if sys.platform == "win32":
+        import winreg
+
+        reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
+        try:
+            reg_key = winreg.OpenKey(
+                reg, r'SYSTEM\\CurrentControlSet\\Control\\Network\\{4d36e972-e325-11ce-bfc1-08002be10318}')
+        except:
+            try:
+                reg_key = winreg.OpenKey(
+                    reg, r'SYSTEM\\CurrentControlSet\\Control\\Network\\{4D36E972-E325-11CE-BFC1-08002BE10318}')
+            except:
+                print("Cannot get interfaces.")
+                if __name__ == "__main__":
+                    exit(0)
+                else:
+                    raise KeyboardInterrupt
+
+        for i in range(len(ifaces)):
+            iface_guid = ifaces[i]
+            try:
+                reg_subkey = winreg.OpenKey(
+                    reg_key, iface_guid + r'\\Connection')
+                iface_name = winreg.QueryValueEx(reg_subkey, 'Name')[0]
+                ifaces[i] = iface_name
+            except FileNotFoundError:
+                pass
+        
+    return ifaces
+
+ALL_IFACES = set_interfaces()
+WLAN = get_wlan_iface()
 
 
 class Sniff:
@@ -32,7 +66,7 @@ class Sniff:
         if iface:
             self.iface = iface
         else:
-            self.iface = get_wlan_iface()
+            self.iface = WLAN
         self.counter = Counter()
         self.capture = {}
 
@@ -40,12 +74,8 @@ class Sniff:
     def get_captured(self):
         return self.capture
 
-    @property
     def sniff(self):
-        if "--sniff-credential" in sys.argv:
-            prn_func = self.sniff_credentials
-        else:
-            prn_func = self.process
+        prn_func = self.process
 
         _(iface=self.iface, filter="ip", store=False, prn=prn_func)
 
@@ -57,30 +87,18 @@ class Sniff:
         self.capture[result] = self.counter[info]
         flush_msg(result)
 
-    def sniff_credentials(self, packet):
-        if packet.haslayer(http.HTTPRequest):
-            flush_msg("HTTP Request from {} | {} ".format(
-                packet[http.HTTPRequest].Host, packet[http.HTTPRequest].Path))
-            if packet.haslayer(scapy.Raw):
-                load = packet[scapy.Raw].load
-                keys = ["username", "password", "pass", "email"]
-                for key in keys:
-                    if key in load:
-                        flush_msg(
-                            "Possible Username or Password Found {}".format(load))
-
 
 def get_iface_stdin():
     iface = None
     while True:
         try:
             iface = input(
-                "Enter the interface from above\n(default='{}'): ".format(get_wlan_iface()))
+                "Enter the interface from above\n(default='{}'): ".format(WLAN))
 
-            if iface in all_ifaces:
+            if iface in ALL_IFACES:
                 break
             elif isinstance(iface, str) and not iface:
-                iface = get_wlan_iface()
+                iface = WLAN
                 break
             else:
                 continue
@@ -95,32 +113,36 @@ def get_iface_stdin():
 def main(name=None):
     print('-' * 60)
     print('-' * 19, ' NETWORK MONITORING ', '-' * 19)
+    print('-' * 60)
+    print("-" * 10, "MONITOR TRAFFIC INITIATOR AND RECEIVER", "-" * 10)
 
     while True:
         print("-" * 60)
-        print("Your network interfaces.")
-        print("-" * 60)
-        for counter, ifaces in enumerate(all_ifaces):
+        print("Your network interfaces,")
+        # print("\n")
+        for counter, ifaces in enumerate(ALL_IFACES):
             print("{}. {}".format((counter+1), ifaces))
         print("-" * 60)
-        iface = get_iface_stdin()
 
         try:
+            iface = get_iface_stdin()
             s = Sniff(iface=iface)
+
             print("-" * 60)
-            if "--sniff-credential" in sys.argv:
-                print("Looking for possible username or password ... ")
-            else:
-                print("Monitoring your network...")
+            print("Monitoring your network...")
             print("-" * 60)
-            s.sniff
+
+            s.sniff()
+
             print("")
             print("-" * 60)
             print("Summary")
             print("-" * 60)
             for result, count in s.get_captured.items():
                 print("- {} | Count: {}".format(result, count))
+
             print("-" * 60)
+
             input("Press enter to continue.")
         except KeyboardInterrupt:
             exit_program(name)

@@ -17,7 +17,8 @@ MODULES_PATH = "./modules"
 IGNORE_FILES = (
     '__common.py',
     '__modules.py',
-    'database.txt'
+    'database.txt',
+    'error.txt'
 )
 
 
