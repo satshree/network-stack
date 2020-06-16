@@ -7,10 +7,14 @@ except ModuleNotFoundError:
     pass
 
 try:
-    from common.common import exit_program, log_exception
+    from __common import exit_program, log_exception
 except ModuleNotFoundError:
-    print("'common' folder and its components not found ...")
-    exit(0)
+    try:
+        from .__common import exit_program, log_exception
+    except ModuleNotFoundError:
+        print("'__common.py' not found ...")
+        exit(0)
+
 
 class ScanPort:
     def __init__(self, host, port=[]):
@@ -19,15 +23,15 @@ class ScanPort:
             self.port = port
         else:
             self.port = self.known_ports
-        
-        self.open_ports=[]
-    
+
+        self.open_ports = []
+
     @property
     def known_ports(self):
-        return [5,7,18,20,21,22,23,25,29,37,42,43,49,53,69,70,79,80,103,108,109,110,\
-            115,118,119,137,139,143,150,156,161,179,190,194,197,389,396,443,444,\
-            445,458,546,547,563,569,1080]
-    
+        return [5, 7, 18, 20, 21, 22, 23, 25, 29, 37, 42, 43, 49, 53, 69, 70, 79, 80, 103, 108, 109, 110,
+                115, 118, 119, 137, 139, 143, 150, 156, 161, 179, 190, 194, 197, 389, 396, 443, 444,
+                445, 458, 546, 547, 563, 569, 1080]
+
     @property
     def get_open_ports(self):
         open_ports = []
@@ -58,9 +62,9 @@ class ScanPort:
                     port_desc = socket.getservbyport(int(port)).upper()
                 except:
                     port_desc = "Unknown"
-                    
+
                 self.open_ports.append({
-                    port:port_desc
+                    port: port_desc
                 })
 
                 s.close()
@@ -75,7 +79,7 @@ class ScanPort:
             sys.stdout.flush()
 
         return self.open_ports
-    
+
     def stealth_scan(self, verbose=False):
         """ Perform SYN Scan. """
 
@@ -86,7 +90,7 @@ class ScanPort:
             for port in self.port:
                 if verbose:
                     print("\rScanning port {}...".format(port), end="")
-                    sys.stdout.flush()                    
+                    sys.stdout.flush()
 
                 # TCP Packet.
                 tcp = TCP(dport=int(port), flags="S", seq=int(port))
@@ -95,14 +99,16 @@ class ScanPort:
                 packet = ip/tcp
 
                 # Connect to given port to check for open port.
-                reply = sr1(packet, verbose=False, timeout=2)  # sr1 sends packets at Layer 3.
+                # sr1 sends packets at Layer 3.
+                reply = sr1(packet, verbose=False, timeout=2)
 
                 if hasattr(reply, 'seq'):
                     if reply.seq:
                         if reply.seq > 0:
                             # If the port is open.
                             try:
-                                port_desc = socket.getservbyport(int(port)).upper()
+                                port_desc = socket.getservbyport(
+                                    int(port)).upper()
                             except:
                                 port_desc = "Unknown"
 
@@ -112,7 +118,7 @@ class ScanPort:
         except ModuleNotFoundError:
             raise ModuleNotFoundError
         except KeyboardInterrupt:
-            exit_program()
+            raise KeyboardInterrupt
         except Exception as e:
             log_exception(e)
         else:
@@ -121,20 +127,21 @@ class ScanPort:
                 sys.stdout.flush()
             return self.open_ports
 
-def main():
-    print('-' * 60)
-    print('-' * 21 , ' PORT  SCANNING ', '-' * 21)
 
-    if "-stealth" not in sys.argv:
-        print('-' * 60)
-        print("Run portscanner with flag '-stealth' to perform stealth scan.")
+def main(name=None, stealth=False):
+    print('-' * 60)
+    print('-' * 21, ' PORT  SCANNING ', '-' * 21)
+
+    # if stealth:
+    #     print('-' * 60)
+    #     print("Run portscanner with flag '-stealth' to perform stealth scan.")
 
     while True:
         try:
             print('-' * 60)
             host = input('Enter hostname: ')
             try:
-                ip=socket.gethostbyname(host)
+                ip = socket.gethostbyname(host)
                 print('>>> Hostname resolved into', ip)
             except:
                 print('>>> Cannot resolve the hostname.')
@@ -145,11 +152,11 @@ def main():
             if port:
                 port = port.split(",")
             else:
-                port=[]
+                port = []
             scan = ScanPort(ip, port=port)
             print("-" * 60)
             try:
-                if "-stealth" in sys.argv:
+                if stealth:
                     print("Performing stealth scan ...")
                     print("-" * 60)
                     open_ports = scan.stealth_scan(verbose=True)
@@ -162,10 +169,9 @@ def main():
                 print("-" * 60)
                 open_ports = scan.connect_scan(verbose=True)
             except KeyboardInterrupt:
-                # raise KeyboardInterrupt
-                exit_program()
+                raise KeyboardInterrupt
         except KeyboardInterrupt:
-            exit_program()
+            exit_program(name)
         # except:
         #     print('')
         #     print('-' * 60)
@@ -181,5 +187,10 @@ def main():
             else:
                 print("No Open Ports Found...")
 
+
 if __name__ == "__main__":
-    main()
+    if "-stealth" in sys.argv:
+        stealth = True
+    else:
+        stealth = False
+    main(name=__name__, stealth=stealth)

@@ -10,16 +10,30 @@ except ModuleNotFoundError:
     exit(0)
 
 try:
-    from common.common import flush_msg, exit_program, get_OUI, get_sys_gateway#, get_sys_ip
+    from __common import flush_msg, exit_program, get_OUI, get_sys_gateway  # , get_sys_ip
 except ModuleNotFoundError:
-    print("'common' folder and its components not found ...")
-    exit(0)
+    try:
+        from .__common import flush_msg, exit_program, get_OUI, get_sys_gateway  # , get_sys_ip
+    except ModuleNotFoundError:
+        print("'__common.py' not found ...")
+        exit(0)
 
 try:
     from nmap import PortScanner
 except ModuleNotFoundError:
     print("'python-nmap' not installed ...")
     exit(0)
+
+
+# SET ROOT PRIVILEGE STATUS
+if sys.platform == 'win32':
+    ROOT_PREV = True
+else:
+    if os.getuid() == 0:
+        ROOT_PREV = True
+    else:
+        ROOT_PREV = False
+
 
 class ScanHost:
     def __init__(self, network=None, attempts=5):
@@ -34,16 +48,16 @@ class ScanHost:
             self.ip = ".".join(ip)
         self.attempts = attempts
         self.hosts = {}
-    
+
     @property
     def get_hosts(self):
         return self.hosts
-    
+
     @property
     def total_hosts(self):
         return len(self.hosts.keys())
-    
-    def validate_network_address(self, ip): 
+
+    def validate_network_address(self, ip):
         """ Validate Network Address. """
         if ("." in ip) and (len(ip) > 11) and (ip[-5:-2] == ".0/"):
             return True
@@ -70,17 +84,18 @@ class ScanHost:
 
         for attempt in range(self.attempts):
             if verbose:
-                flush_msg("\rScanning network {} | Attempt: {} of {}.".format(self.ip, (attempt + 1), self.attempts), next_line=False)
+                flush_msg("\rScanning network {} | Attempt: {} of {}.".format(
+                    self.ip, (attempt + 1), self.attempts), next_line=False)
             answered = srp(arp_broadcast, timeout=2, verbose=False)[0]
 
             for element in answered:
                 self.hosts[element[1].psrc] = {'MAC': element[1].hwsrc.upper()}
-        
+
         if verbose:
             flush_msg("")
 
         return self.hosts
-    
+
     def vendor(self):
         """ Identify vendor of online caught hosts. """
 
@@ -89,7 +104,7 @@ class ScanHost:
         for host in self.hosts.keys():
             mac = self.hosts[host]['MAC']
             self.hosts[host]['Vendor'] = oui.get(mac[:8])
-    
+
     def hostname(self):
         """ Set Hostname of the device. """
 
@@ -104,33 +119,42 @@ class ScanHost:
         """ Fingerprint OS by nmap. """
         _nmap = PortScanner()
 
-        progress = 1
-        for ip in self.hosts.keys():
+        if ROOT_PREV:
+            progress = 1
+            for ip in self.hosts.keys():
+                if verbose:
+                    flush_msg("\rProgress: {} % | Fingerprinting {}...".format(
+                        int((progress/self.total_hosts) * 100), ip), next_line=False)
+                try:
+                    _nmap.scan(ip, arguments="-O")
+                    self.hosts[ip]["OS"] = _nmap[ip]["osmatch"][0]["name"] + \
+                        " ({} % Accurate)".format(
+                            _nmap[ip]["osmatch"][0]["accuracy"])
+                except:
+                    self.hosts[ip]["OS"] = "----"
+
+                progress += 1
+
             if verbose:
-                flush_msg("\rProgress: {} % | Fingerprinting {}...".format(int((progress/self.total_hosts) * 100), ip), next_line=False)
-            try:
-                _nmap.scan(ip, arguments="-O")
-                self.hosts[ip]["OS"] = _nmap[ip]["osmatch"][0]["name"] + " ({} % Accurate)".format(_nmap[ip]["osmatch"][0]["accuracy"])
-            except:
-                self.hosts[ip]["OS"] = "----"
+                flush_msg("")
+        else:
+            flush_msg("No Root Privilege.")
 
-            progress += 1
 
-        if verbose:
-            flush_msg("")
-
-def main():
+def main(name=None):
     print('-' * 60)
-    print('-' * 20 , ' NETWORK SCANNING ', '-' * 20)
+    print('-' * 20, ' NETWORK SCANNING ', '-' * 20)
 
     while True:
         try:
             print("-" * 60)
-            network = input("Enter Network Address\n(leaving empty will target your gateway address): ")
+            network = input(
+                "Enter Network Address\n(leaving empty will target your gateway address): ")
 
             print("-" * 60)
-            attempts = input("Enter Total Network Scanning Attempts(default=5): ")
-            
+            attempts = input(
+                "Enter Total Network Scanning Attempts(default=5): ")
+
             if attempts:
                 attempts = int(attempts)
             else:
@@ -161,7 +185,7 @@ def main():
                 print("Vendor:", info["Vendor"])
                 print("Hostname:", info["Hostname"])
 
-            if os.getuid() == 0:
+            if ROOT_PREV:
                 print("-" * 60)
                 print("Identifying Operating System...")
                 print("This can take long time...")
@@ -175,21 +199,18 @@ def main():
                     print(host, "\t|", info["OS"])
 
             end = time.time()
-            
+
             print("-" * 60)
             print("Total Hosts:", len(scan.get_hosts.keys()))
             print("-" * 60)
-            print("Total Time Taken:", int(end-start), "seconds", "| Approximately {} minutes".format(int(int(end-start)/60)))
+            print("Total Time Taken:", int(end-start), "seconds",
+                  "| Approximately {} minutes".format(int(int(end-start)/60)))
             # print("-" * 60)
         except KeyboardInterrupt:
-            exit_program()
+            exit_program(name)
         except Exception as e:
             print("Exception:", str(e))
 
+
 if __name__ == "__main__":
-    if os.getuid() != 0:
-        print("-" * 60)
-        print("No Root/Admin Privileges.")
-        print("-" * 60)
-    else:
-        main()
+    main(name=__name__)

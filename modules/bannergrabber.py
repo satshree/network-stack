@@ -2,16 +2,22 @@ import sys
 import socket
 
 try:
-    from common.common import exit_program, log_exception
+    from __common import exit_program, log_exception
 except ModuleNotFoundError:
-    print("'common' folder and its components not found ...")
-    exit(0)
+    try:
+        from .__common import exit_program, log_exception
+    except ModuleNotFoundError:
+        print("'__common.py' not found ...")
+        exit(0)
 
 try:
     from portscanner import ScanPort
 except ModuleNotFoundError:
-    print("'portscanner.py' not found ... ")
-    exit(0)
+    try:
+        from .portscanner import ScanPort
+    except ModuleNotFoundError:
+        print("'portscanner.py' not found ... ")
+        exit(0)
 
 class GrabBanner:
     def __init__(self, host, ports=None):
@@ -74,18 +80,18 @@ class GrabBanner:
 
 def get_payload():
     try:
-        with open("bannergrabbing_payloads.txt", "r") as file:
-            payload = file.read()
+        with open("../payloads.txt", "r") as file:
+            payload = "".join(file.readlines()[5:])
     except Exception as e:
         print("Exception:", str(e))
         payload = None
     except FileNotFoundError:
-        print("File 'bannergrabbing_payloads.txt' Not Found!")
+        print("File 'payloads.txt' Not Found!")
         payload = None
     finally:
         return payload
     
-def main():
+def main(name=None):
     print('-' * 60)
     print('-' * 20 , ' BANNER  GRABBING ', '-' * 20)
 
@@ -130,7 +136,7 @@ def main():
             print("-" * 60)
             banners = banner.grab(verbose=True, payload=payload)
         except KeyboardInterrupt:
-            exit_program()
+            exit_program(name)
         except Exception as e:
             log_exception(e)
             print('')
@@ -150,4 +156,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(name=__name__)
