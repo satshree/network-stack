@@ -128,7 +128,7 @@ class ScanPort:
             return self.open_ports
 
 
-def main(name=None, stealth=False):
+def main(name=None):
     print('-' * 60)
     print('-' * 21, ' PORT  SCANNING ', '-' * 21)
 
@@ -150,6 +150,28 @@ def main(name=None, stealth=False):
             else:
                 port = []
             scan = ScanPort(ip, port=port)
+
+            print("-" * 60)
+            print("Choose scan type,")
+            print("1. Stealth Scan")
+            print("2. Connect Scan")
+            print("-" * 60)
+
+            while True:
+                try:
+                    stealth_option = int(input("Choose option: "))
+                except:
+                    continue
+                else:
+                    if stealth_option == 1:
+                        stealth = True
+                        break
+                    elif stealth_option == 2:
+                        stealth = False
+                        break
+                    else:
+                        continue
+
             print("-" * 60)
             try:
                 if stealth:
@@ -175,6 +197,8 @@ def main(name=None, stealth=False):
         else:
             print("-" * 60)
             if open_ports:
+                print("Open Ports")
+                print("-" * 60)
                 print("PORT\t|\tDESCRIPTION")
                 print("-" * 60)
                 for ports in open_ports:
@@ -185,8 +209,4 @@ def main(name=None, stealth=False):
 
 
 if __name__ == "__main__":
-    if "-stealth" in sys.argv:
-        stealth = True
-    else:
-        stealth = False
-    main(name=__name__, stealth=stealth)
+    main(name=__name__)
