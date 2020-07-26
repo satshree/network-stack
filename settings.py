@@ -29,7 +29,10 @@ def get_script_list():
     for path, folder, files in os.walk(MODULES_PATH):
         if path == MODULES_PATH:
             for file in IGNORE_FILES:
-                del files[files.index(file)]
+                try:
+                    del files[files.index(file)]
+                except:
+                    pass
 
             return files
 
